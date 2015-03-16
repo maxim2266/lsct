@@ -25,4 +25,6 @@ gcc (Ubuntu 4.8.2-19ubuntu1) 4.8.2
 ```
 
 #### Limitations
-So far it has been found that sometimes libmagic reports some ```.mp3``` files as being of type ```application/octet-stream``` instead of ```audio/mpeg```, though those files can be played by vlc and other players with no problem at all.
+So far it has been found that sometimes ```libmagic``` reports some ```.mp3``` files as being of type ```application/octet-stream``` instead of ```audio/mpeg```, though those files can be played by vlc and other players with no problem at all.
+
+###### Licence: BSD
