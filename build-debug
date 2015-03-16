@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+gcc -g lsct.c -o lsct -Wall -std=c99 -lmagic 

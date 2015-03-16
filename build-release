@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+gcc -Os -s -flto -Wl,--as-needed -Wall -march=native -mtune=native -fomit-frame-pointer \
+-o lsct \
+-DNDEBUG -DRELEASE \
+-std=c99 \
+lsct.c	\
+-ffunction-sections -fdata-sections -Wl,--gc-sections	\
+-lmagic
