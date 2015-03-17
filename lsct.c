@@ -43,10 +43,10 @@
 #define if_unlikely(x)	if(__builtin_expect(!!(x), 0))
 
 // error handling
-#define WARN_ERRNO(err, fmt, ...) error(0, err, "[WARNING] " fmt, ##__VA_ARGS__)
+#define WARN_ERRNO(err, fmt, ...) error(0, (err), "[WARNING] " fmt, ##__VA_ARGS__)
 #define WARN(fmt, ...) WARN_ERRNO(0, fmt, ##__VA_ARGS__)
 
-#define EXIT_ERRNO(err, fmt, ...) error(EXIT_FAILURE, err, "[ERROR] " fmt, ##__VA_ARGS__)
+#define EXIT_ERRNO(err, fmt, ...) error(EXIT_FAILURE, (err), "[ERROR] " fmt, ##__VA_ARGS__)
 #define EXIT(fmt, ...) EXIT_ERRNO(0, fmt, ##__VA_ARGS__)
 
 // memory allocation
@@ -85,6 +85,18 @@ static print_func print = print_name;   // -m / --mime
 static bool visit_dot_entries = false;  // -a / --all
 
 static
+bool is_arg(const char* const param, const char short_arg, const char* const long_arg)
+{
+	return (param[0] == short_arg && param[1] == 0) || strcmp(param, long_arg) == 0;
+}
+
+static
+bool is_long_arg(const char* const param, const char* const long_arg)
+{
+	return strcmp(param, long_arg) == 0;
+}
+
+static
 int read_switches(const int argc, char** argv)
 {
 	int i;
@@ -93,13 +105,13 @@ int read_switches(const int argc, char** argv)
 	{
 		const char* const param = argv[i] + 1;
 
-		if((param[0] == 'm' && param[1] == 0) || strcmp(param, "-mime") == 0)
+		if(is_arg(param, 'm', "-mime"))
 			print = print_full;
-		else if((param[0] == '0' && param[1] == 0) || strcmp(param, "-null") == 0)
+		else if(is_arg(param, '0', "-null"))
 			str_term = 0;
-		else if((param[0] == 'a' && param[1] == 0) || strcmp(param, "-all") == 0)
+		else if(is_arg(param, 'a', "-all"))
 			visit_dot_entries = true;
-		else if(strcmp(param, "-help") == 0)
+		else if(is_long_arg(param, "-help"))
 		{
 			fprintf(stderr,
 					"Usage: %s [OPTION]... [FILE]...\n"
@@ -307,10 +319,10 @@ int main(int argc, char** argv)
 
 	if(si == argc)
 		scan_dir(".");
-	else do 
-	    scan_dir(argv[si]);
-		    while(++si < argc);
+	else
+		do { scan_dir(argv[si]); } while(++si < argc);
 
+	// print out sorted list
 	twalk(dict, print_dict_item);
 
 	return 0;
