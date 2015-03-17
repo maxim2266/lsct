@@ -263,26 +263,46 @@ int visit_file(const char* name, const struct stat* ps, int typeflag, struct FTW
 	{
 	case FTW_DNR:
 	case FTW_NS:
-		WARN("Access denied: %s", name);
+		WARN("Permission denied: %s", name);
 		return FTW_CONTINUE;
 	case FTW_D:
 	case FTW_F:
 	case FTW_SL:
-	case FTW_SLN:
 		break;
 	default:
-		EXIT("Unknown type flag %d", typeflag);
+		EXIT("Unexpected type flag %d", typeflag);
 	}
 
-	// select on mode
 	const bool skip_entry = !visit_dot_entries && name[pftw->base] == '.';
+	const char* mime = NULL;
 
+	// select on mode
 	switch(ps->st_mode & S_IFMT)
 	{
 	case S_IFREG:
+		if(skip_entry)
+			return FTW_CONTINUE;
+
+		if(ps->st_size > 0)
+		{
+			mime = magic_file(libmagic, name);
+
+			if_unlikely(!mime)
+				EXIT("libmagic error for \"%s\": %s", name, magic_error(libmagic));
+		}
+		else // optimisation to skip a call to libmagic
+			mime = "inode/x-empty; charset=binary";
+
+		break;
 	case S_IFLNK:
 		if(skip_entry)
 			return FTW_CONTINUE;
+
+		// optimisation: emulate libmagic to avoid opening links.
+		// libmagic actually returns "inode/symlink; charset=binary"
+		// for live links and just "inode/symlink" for broken ones.
+		// For our purpose the latter mime type is enough.
+		mime = "inode/symlink";
 		break;
 	case S_IFDIR:
 		return skip_entry && name[pftw->base + 1] != 0 ? FTW_SKIP_SUBTREE : FTW_CONTINUE;
@@ -290,13 +310,6 @@ int visit_file(const char* name, const struct stat* ps, int typeflag, struct FTW
 		return FTW_CONTINUE;
 	}
 
-    // get mime string
-	const char* const mime = magic_file(libmagic, name);
-
-	if_unlikely(!mime)
-		EXIT("libmagic error for \"%s\": %s", name, magic_error(libmagic));
-
-	// process the entry
 	dict_add(mime, name);
 
 	return FTW_CONTINUE;
