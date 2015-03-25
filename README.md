@@ -1,5 +1,5 @@
 # lsct
-A Linux command line tool for recursively listing files in a directory, sorted by content-type. 
+A Linux command line tool for recursively listing files in a directory, sorted by content-type.
 
 #### Motivation
 The idea of the tool stems from the fact that compressed ```tar``` archives get smaller in size if the files are sorted by their type before the compression. The first attempt to sort files by content-type using ```file``` and ```sort``` utilities failed because on my Linux Mint 17 the ```file``` command cannot accept or produce null-terminanated strings and ```sort``` cannot select the part of the string after the last delimiter.
@@ -7,10 +7,10 @@ The idea of the tool stems from the fact that compressed ```tar``` archives get 
 #### Usage
 By default the tool recursively lists files and symbolic links only, ignoring all entries starting from "." and not following the links. The behaviour can be adjusted by supplying any of the following options:
 * ```-a, --all```   do not ignore entries starting from "."
-* ```-m, --mime```  output using the format: ```<comtent-type>: <file>```
+* ```-m, --mime```  output using the format: ```<content-type>: <file>```
 * ```-0, --null```  use null instead of new-line to separate output lines.
 
-The output of the utility can be, for example, piped into a ```tar``` command for further processing. 
+The output of the utility can be, for example, piped into a ```tar``` command for further processing.
 
 #### Implementation
 The implementation is build around ```nftw(3)``` function, filling in a binary tree with the entry names and then traversing the tree. The tool relies on ```libmagic``` for providing the content-type information.
