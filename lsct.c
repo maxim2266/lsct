@@ -147,7 +147,7 @@ void free_libmagic()
 static
 void init_libmagic()
 {
-	libmagic = magic_open(MAGIC_MIME_TYPE | MAGIC_MIME_ENCODING | MAGIC_PRESERVE_ATIME | MAGIC_ERROR);
+	libmagic = magic_open(MAGIC_MIME | MAGIC_PRESERVE_ATIME | MAGIC_ERROR);
 
 	if_unlikely(libmagic == NULL)
 		EXIT_ERRNO(errno, "Failed to initialise libmagic");
@@ -305,7 +305,15 @@ int visit_file(const char* name, const struct stat* ps, int typeflag, struct FTW
 		mime = "inode/symlink";
 		break;
 	case S_IFDIR:
-		return skip_entry && name[pftw->base + 1] != 0 ? FTW_SKIP_SUBTREE : FTW_CONTINUE;
+		{
+			const char* const base = name + pftw->base;
+
+			// Names like "." or ".." can only come from command line, but we
+			// still have to process them here
+			if(base[0] == '.' && (base[1] == 0 || (base[1] == '.' && base[2] == 0)))
+				return FTW_CONTINUE;
+		}
+		return skip_entry ? FTW_SKIP_SUBTREE : FTW_CONTINUE;
 	default:
 		return FTW_CONTINUE;
 	}
@@ -319,7 +327,7 @@ static
 void scan_dir(const char* dir)
 {
 	if_unlikely(nftw(dir, visit_file, 20, FTW_PHYS | FTW_ACTIONRETVAL) == -1)
-		EXIT_ERRNO(errno, "Directory scan failed");
+		EXIT_ERRNO(errno, "\"%s\"", dir);
 }
 
 // entry point
