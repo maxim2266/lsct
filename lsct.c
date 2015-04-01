@@ -64,6 +64,7 @@ void* check_ptr(void* p)
 
 // settings
 static char str_term = '\n';  // -0 / --null
+static bool ignore_inaccessible_entries = false;	// -i / --ignore-inaccessible
 
 // printout functions
 static
@@ -111,6 +112,8 @@ int read_switches(const int argc, char** argv)
 			str_term = 0;
 		else if(is_arg(param, 'a', "-all"))
 			visit_dot_entries = true;
+		else if(is_arg(param, 'i', "-ignore-inaccessible"))
+			ignore_inaccessible_entries = true;
 		else if(is_long_arg(param, "-help"))
 		{
 			fprintf(stderr,
@@ -327,7 +330,12 @@ static
 void scan_dir(const char* dir)
 {
 	if_unlikely(nftw(dir, visit_file, 20, FTW_PHYS | FTW_ACTIONRETVAL) == -1)
-		EXIT_ERRNO(errno, "\"%s\"", dir);
+	{
+		if(errno == ENOENT && ignore_inaccessible_entries)
+			WARN_ERRNO(ENOENT, "\"%s\"", dir);
+		else
+			EXIT_ERRNO(errno, "\"%s\"", dir);
+	}
 }
 
 // entry point
@@ -344,6 +352,9 @@ int main(int argc, char** argv)
 		do { scan_dir(argv[si]); } while(++si < argc);
 
 	// print out sorted list
+	if_unlikely(!dict)
+		EXIT("Nothing to list");
+
 	twalk(dict, print_dict_item);
 
 	return 0;

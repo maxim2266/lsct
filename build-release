@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-gcc -O2 -s -flto -Wl,--as-needed -Wall -march=native -mtune=native -fomit-frame-pointer \
+gcc -O2 -s -Wall -march=native -mtune=native -fomit-frame-pointer -Wl,--as-needed \
 -o lsct \
 -DNDEBUG -DRELEASE \
 -std=c99 \
