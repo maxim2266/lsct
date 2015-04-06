@@ -123,6 +123,8 @@ int read_switches(const int argc, char** argv)
 					"  -a, --all      do not ignore entries starting with . (default: off)\n"
 					"  -m, --mime     output using the format \"<mime>: <file>\" (default: off)\n"
 					"  -0, --null     use null instead of new-line to separate output lines (default: off)\n"
+					"  -i, --ignore-inaccessible\n"
+					"                 ignore entries that cannot be read (default: off)\n"
 					"      --help     display this help and exit.\n",
 					program_invocation_short_name);
 			exit(EXIT_FAILURE);
